@@ -1,0 +1,21 @@
+{
+  "name": "brc-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "check": "tsc --noEmit",
+    "dev": "wrangler dev",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.157.0",
+    "@cloudflare/workers-types": "5.20261103.1",
+    "typescript": "5.9.3",
+    "esbuild": "0.28.2",
+    "miniflare": "5.20261103.0-beta"
+  }
+}

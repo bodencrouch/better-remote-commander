@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { RemoteSqliteDatabase, type SqlDatabase } from './remote-sqlite.js';
 
 export const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 export const randomToken = (bytes = 32) => randomBytes(bytes).toString('base64url');
@@ -29,7 +30,7 @@ export interface DeviceRow { device_id: string; user_id: string; name: string; t
 export interface DeviceCodeRow { device_code: string; user_code: string; client_name: string; user_id: string | null; approved: number; denied: number; device_id: string | null; expires_at: number; created_at: number }
 export interface AuditRow { id: number; ts: number; user_id: string | null; device_id: string | null; client: string | null; tool: string; args_hash: string | null; ok: number; ms: number | null; error: string | null }
 
-const SCHEMA = `
+export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS oauth_clients (client_id TEXT PRIMARY KEY, client_secret TEXT, metadata TEXT NOT NULL, created_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS auth_codes (code TEXT PRIMARY KEY, client_id TEXT NOT NULL, user_id TEXT NOT NULL, code_challenge TEXT NOT NULL, redirect_uri TEXT NOT NULL, scopes TEXT NOT NULL, resource TEXT, expires_at INTEGER NOT NULL);
@@ -41,13 +42,18 @@ CREATE INDEX IF NOT EXISTS audit_ts ON audit(ts);
 `;
 
 export class SqliteStore {
-  readonly db: DatabaseSync;
+  readonly db: SqlDatabase;
 
   constructor(file: string) {
-    if (file !== ':memory:') mkdirSync(path.dirname(file), { recursive: true });
-    this.db = new DatabaseSync(file);
-    this.db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
-    this.db.exec(SCHEMA);
+    if (process.env.BRC_SQL_ENDPOINT) {
+      this.db = new RemoteSqliteDatabase(process.env.BRC_SQL_ENDPOINT, process.env.BRC_SQL_TOKEN);
+    } else {
+      if (file !== ':memory:') mkdirSync(path.dirname(file), { recursive: true });
+      this.db = new DatabaseSync(file);
+      this.db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+    }
+    try { this.db.exec(SCHEMA); }
+    catch (error) { this.db.close(); throw error; }
   }
 
   /* ---------- users ---------- */

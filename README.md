@@ -75,3 +75,11 @@ The agent's tool implementation (`packages/agent/src/core`) is derived from
 [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP) by Eduard Ruzga and contributors (MIT).
 Desktop Commander's hosted remote relay is proprietary; this project provides an open, self-hostable relay with the same
 device-agent model, plus OAuth for Claude/ChatGPT, device pairing, and a browser dashboard. See [NOTICE](NOTICE).
+
+## Cloud hosting
+
+Deploy the existing Node relay on [Cloudflare Workers + Containers with durable
+SQLite storage](docs/cloud-deployment.md), or use the same Docker image on a
+managed container host with a persistent `/data` volume. Desktop agents stay on
+your own machines. See the guide for prerequisites, secrets, restart verification,
+and limitations.

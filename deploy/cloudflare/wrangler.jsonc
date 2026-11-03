@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "brc-relay",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "containers": [{
+    "class_name": "RelayContainer",
+    "image": "../../packages/relay/Dockerfile",
+    "image_build_context": "../..",
+    "max_instances": 1,
+    "instance_type": "lite"
+  }],
+  "durable_objects": { "bindings": [
+    { "name": "RELAY", "class_name": "RelayContainer" },
+    { "name": "RELAY_DB", "class_name": "RelayDatabase" }
+  ] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RelayContainer", "RelayDatabase"] }],
+  "vars": { "BRC_ADMIN_USER": "admin" }
+}

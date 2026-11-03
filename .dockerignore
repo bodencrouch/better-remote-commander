@@ -6,3 +6,7 @@ data
 .git
 *.log
 .env
+.wrangler
+**/.wrangler
+.dev.vars
+**/.dev.vars*

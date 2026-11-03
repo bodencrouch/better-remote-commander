@@ -41,3 +41,17 @@ jobs:
           docker run -d --name relay -p 3000:3000 -e PUBLIC_URL=http://localhost:3000 -e BRC_ADMIN_PASSWORD=ci -e BRC_SESSION_SECRET=ci brc/relay:ci
           for i in $(seq 1 20); do curl -fs http://localhost:3000/health && break; sleep 1; done
           curl -fs http://localhost:3000/.well-known/oauth-authorization-server | grep -q authorization_endpoint
+
+  cloudflare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm ci
+        working-directory: deploy/cloudflare
+      - run: npm run check && npm test
+        working-directory: deploy/cloudflare
+      - run: npx wrangler deploy --dry-run --containers-rollout=none
+        working-directory: deploy/cloudflare
+        env: { WRANGLER_SEND_METRICS: 'false' }
